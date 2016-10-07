@@ -28,9 +28,9 @@ Given /^I am on the RottenPotatoes home page$/ do
    click_on "More about #{title}"
  end
 
- Then /^(?:|I )should see "([^"]*)"$/ do |text|
+  Then /^(?:|I )should see "([^"]*)"$/ do |text|
     expect(page).to have_content(text)
- end
+  end
 
  When /^I have edited the movie "(.*?)" to change the rating to "(.*?)"$/ do |movie, rating|
   click_on "Edit"
@@ -46,8 +46,9 @@ Given /^I am on the RottenPotatoes home page$/ do
 # Add a declarative step here for populating the DB with movies.
 
 Given /the following movies have been added to RottenPotatoes:/ do |movies_table|
-  pending  # Remove this statement when you finish implementing the test step
+  #pending  # Remove this statement when you finish implementing the test step
   movies_table.hashes.each do |movie|
+      Movie.create( title: movie[:title], rating: movie[:rating] , release_date: movie[:release_date])
     # Each returned movie will be a hash representing one row of the movies_table
     # The keys will be the table headers and the values will be the row contents.
     # Entries can be directly to the database with ActiveRecord methods
@@ -59,16 +60,55 @@ When /^I have opted to see movies rated: "(.*?)"$/ do |arg1|
   # HINT: use String#split to split up the rating_list, then
   # iterate over the ratings and check/uncheck the ratings
   # using the appropriate Capybara command(s)
-  pending  #remove this statement after implementing the test step
+  #pending  #remove this statement after implementing the test step
+  
+  rating_list = arg1.split(",")
+  rating_list.each do |x|
+      x.strip!
+  end
+  all('input[type=checkbox]').each do |checkbox|
+    if checkbox.checked? then 
+        checkbox.click
+    end
+  end
+  rating_list.each do |ab|
+    check("ratings_#{ab}")
+  end
+  click_button 'Refresh'
+  
 end
 
 Then /^I should see only movies rated: "(.*?)"$/ do |arg1|
-  pending  #remove this statement after implementing the test step
+    #pending  #remove this statement after implementing the test step
+    result=false
+    rating_list = arg1.split(",")
+    rating_list.each do |x|
+      x.strip!
+    end
+    # rating_list.each do |ck|
+    #     page.body.should match(/<td>#{ck}<\/td>/)
+    # end
+
+  all('#movie tr > td:nth-child(2)').each do |td|
+    %w{rating_list}.should include td.text
+  end
 end
 
 Then /^I should see all of the movies$/ do
-  pending  #remove this statement after implementing the test step
+  #pending  #remove this statement after implementing the test step
+     page.all('table#movies tr').count.should == Movie.count+1
 end
 
 
+When /^I follow alphabetically$/ do 
+    click_on 'Movie Title'
+end
 
+When /^I follow release date$/ do 
+    click_on 'Release Date'
+end
+
+
+Then /^I should see "(.*?)" before "(.*?)"$/ do |e1, e2|
+    expect(page.body).to match (/#{e1}.*#{e2}/m)
+end
